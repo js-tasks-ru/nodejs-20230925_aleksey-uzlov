@@ -32,36 +32,22 @@ server.on('request', (req, res) => {
 
       limitedStream.on('error', (err) => {
         fs.unlinkSync(filepath);
-        req.resume();
-        outStream.destroy();
-        limitedStream.destroy();
 
         res.statusCode = 413;
         res.end(err.message);
-
       })
 
       req.on('aborted', () => {
         fs.unlinkSync(filepath);
+
         res.statusCode = 500;
         res.end('Server error');
-
-        outStream.destroy();
-        limitedStream.destroy();
       });
 
       req.on('end', () => {
         res.statusCode = 201;
         res.end('Saved');
-
-        outStream.destroy();
-        limitedStream.destroy();
       });
-
-      req.on('error', () => {
-        outStream.destroy();
-        limitedStream.destroy();
-      })
 
       break;
 

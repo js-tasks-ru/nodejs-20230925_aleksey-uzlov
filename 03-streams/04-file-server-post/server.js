@@ -31,17 +31,28 @@ server.on('request', (req, res) => {
       req.pipe(limitedStream).pipe(outStream);
 
       limitedStream.on('error', (err) => {
-        fs.unlinkSync(filepath);
+        limitedStream.end();
+        outStream.end();
 
-        res.statusCode = 413;
-        res.end(err.message);
-      })
+        fs.unlink(filepath, () => {
+          res.statusCode = 413;
+          res.end(err.message);
+        });
+      });
+
+      req.on('error', () => {
+        limitedStream.end();
+        outStream.end();
+      });
 
       req.on('aborted', () => {
-        fs.unlinkSync(filepath);
+        limitedStream.end();
+        outStream.end();
 
-        res.statusCode = 500;
-        res.end('Server error');
+        fs.unlink(filepath, () => {
+          res.statusCode = 500;
+          res.end('Server error');
+        });
       });
 
       req.on('end', () => {

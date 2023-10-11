@@ -3,12 +3,20 @@ module.exports = class Validator {
     this.rules = rules;
   }
 
+  /**
+   * @param obj {object}
+   * @returns {string[]}
+   */
   validate(obj) {
     const errors = [];
 
     for (const field of Object.keys(this.rules)) {
-      const rules = this.rules[field];
+      if (!obj.hasOwnProperty(field)) {
+        errors.push({field, error: `${field} is required`});
+        return errors;
+      }
 
+      const rules = this.rules[field];
       const value = obj[field];
       const type = typeof value;
 
@@ -31,9 +39,11 @@ module.exports = class Validator {
             errors.push({field, error: `too little, expect ${rules.min}, got ${value}`});
           }
           if (value > rules.max) {
-            errors.push({field, error: `too big, expect ${rules.min}, got ${value}`});
+            errors.push({field, error: `too big, expect ${rules.max}, got ${value}`});
           }
           break;
+        default:
+          throw new Error('Unhandled exception');
       }
     }
 
